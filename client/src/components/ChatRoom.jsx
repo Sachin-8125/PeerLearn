@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from "react";
 import ScrollToBottom from "react-scroll-to-bottom";
+import { useParams, useNavigate } from "react-router-dom";
 import CollaborativeNotes from "./CollaborativeNotes";
 
-function ChatRoom({ socket, username, room }) {
+function ChatRoom({ socket, username }) {
+  const { roomName } = useParams();
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!username) {
+      navigate("/");
+    }
+  }, [username, navigate]);
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
       const messageData = {
-        group: room,
+        group: roomName,
         sender: username,
         content: currentMessage,
         time: new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes(),
@@ -36,7 +45,7 @@ function ChatRoom({ socket, username, room }) {
         <div className="bg-secondary p-4 text-white flex justify-between items-center shadow-md z-10">
           <div>
             <p className="font-bold text-lg">Live Chat</p>
-            <p className="text-xs text-slate-300">Room: {room}</p>
+            <p className="text-xs text-slate-300">Room: {roomName}</p>
           </div>
           <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
         </div>
@@ -93,7 +102,7 @@ function ChatRoom({ socket, username, room }) {
       <div className="hidden md:flex md:w-2/3 bg-slate-50 flex-col h-full">
         <div className="p-6 h-full flex flex-col">
             <div className="bg-white rounded-xl shadow-lg h-full flex flex-col overflow-hidden border border-slate-200">
-                 <CollaborativeNotes socket={socket} room={room} />
+                 <CollaborativeNotes socket={socket} room={roomName} />
             </div>
         </div>
       </div>

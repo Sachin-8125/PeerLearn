@@ -58,7 +58,7 @@ app.post('/api/groups', async (req, res) => {
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:5173"],
     methods: ["GET", "POST"],
   },
 });
@@ -67,11 +67,23 @@ io.on('connection', (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   // 1. Join Room Event
-  socket.on('join_room', (room) => {
+  socket.on('join_room', async (room) => {
     socket.join(room);
     console.log(`Socket ${socket.id} joined room: ${room}`);
     
-    // Optional: Load previous messages from DB could happen here
+    try {
+      // Update group status to 'open'
+      const group = await Group.findOneAndUpdate(
+        { name: room },
+        { status: 'open' },
+        { new: true }
+      );
+      if (group) {
+        console.log(`Group ${room} status updated to: ${group.status}`);
+      }
+    } catch (err) {
+      console.error("Error updating group status:", err);
+    }
   });
 
   // 2. Chat Message Event
